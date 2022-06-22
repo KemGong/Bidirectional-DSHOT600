@@ -384,10 +384,10 @@ int main(void)
         }
         dma_status = 0;
         gpio_configuration_output();
-        //__set_FAULTMASK(1);
+        __set_PRIMASK(1);//关总中断
         dma_configuration_send_shoot();
         timer_configuration_send_dshoot();
-        //__set_FAULTMASK(0);
+        __set_PRIMASK(0);//开总中断
         
         //printf("\r /**** TIMER2 PWM Input Capture Demo ****/\r\n");
         // printf(" the dutycycle is %d ", dutycycle);
