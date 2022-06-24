@@ -301,6 +301,9 @@ void timer_configuration_send_dshoot(void)
     /* auto-reload preload enable */
     timer_auto_reload_shadow_enable(TIMER2);
 
+    /* enable DMA channel4 */
+    dma_channel_enable(DMA_CH3);
+
     /* TIMER2 counter enable */
     timer_enable(TIMER2);
 }
@@ -329,9 +332,9 @@ void dma_configuration_send_shoot(void)
     dma_init( DMA_CH3, &dma_init_struct);
     
     /* enable DMA circulation mode */
-    dma_circulation_enable(DMA_CH3);
+    dma_circulation_disable(DMA_CH3);
     /* enable DMA channel4 */
-    dma_channel_enable(DMA_CH3);
+    //dma_channel_enable(DMA_CH3);
 		
 	dma_interrupt_enable(DMA_CH3, DMA_INT_FTF);
 }
