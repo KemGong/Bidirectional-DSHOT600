@@ -54,9 +54,9 @@ OF SUCH DAMAGE.
 
 uint16_t buffer[140] = {0};//32
 
-#define HIGHT_VALUE  0x01U<<(6+16),0x01U<<(6+16),0x01U<<(6)
-#define LOW_VALUE    0x01U<<(6+16),0x01U<<(6),0x01U<<(6)
-#define PULL_HIGH    0x01U<<(6),0x01U<<(6),0x01U<<(6)
+#define HIGHT_VALUE  0x01U<<(4+16),0x01U<<(4+16),0x01U<<(4)
+#define LOW_VALUE    0x01U<<(4+16),0x01U<<(4),0x01U<<(4)
+#define PULL_HIGH    0x01U<<(4),0x01U<<(4),0x01U<<(4)
 
 uint8_t dma_status = 0;
 
@@ -107,11 +107,11 @@ void gpio_configuration_output(void)
     gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_6);
 #endif
     
-    rcu_periph_clock_enable(RCU_GPIOA);
-    //PA6
-    gpio_mode_set(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_6);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_6);
-    gpio_bit_set(GPIOA, GPIO_PIN_6);
+    rcu_periph_clock_enable(RCU_GPIOB);
+    //PB4
+    gpio_mode_set(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_4);
+    gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_4);
+    gpio_bit_set(GPIOB, GPIO_PIN_4);
 }
 
 void gpio_configuration_input(void)
@@ -125,7 +125,7 @@ void gpio_configuration_input(void)
     gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_6);
     gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_6);
 #endif
-    gpio_mode_set(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_6);
+    gpio_mode_set(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_4);
 }
 
 
@@ -219,7 +219,7 @@ void dma_configuration_receive_dshoot(void)
     /* initialize DMA channel4 */
     dma_deinit(DMA_CH3);
     /* DMA channel4 initialize */
-    dma_init_struct.periph_addr  = (uint32_t)GPIOA_ISTAT_ADDR;
+    dma_init_struct.periph_addr  = (uint32_t)GPIOB_ISTAT_ADDR;
     dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.memory_addr  = (uint32_t)buffer;
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
@@ -320,7 +320,7 @@ void dma_configuration_send_shoot(void)
     /* initialize DMA channel4 */
     dma_deinit(DMA_CH3);
     /* DMA channel4 initialize */
-    dma_init_struct.periph_addr  = (uint32_t)GPIOA_BOP_ADDR;
+    dma_init_struct.periph_addr  = (uint32_t)GPIOB_BOP_ADDR;
     dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.memory_addr  = (uint32_t)send_buffer;
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;

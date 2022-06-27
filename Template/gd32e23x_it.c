@@ -207,7 +207,7 @@ void DMA_Channel3_4_IRQHandler(void)
                 receive_dshoot_data_flag = 0;
                 for(int i=0; i<140; i++)
                 {
-                    if (!(buffer[i]>>6 & 1))
+                    if (!(buffer[i]>>4 & 1))
                     {
                         hight_low_status = 1;//µÕµÁ∆Ω
                         start_flag = 1;
