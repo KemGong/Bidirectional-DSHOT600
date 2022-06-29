@@ -398,6 +398,11 @@
               <FileType>1</FileType>
               <FilePath>..\systick.c</FilePath>
             </File>
+            <File>
+              <FileName>pwm_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pwm_control.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -559,5 +564,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>Project</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

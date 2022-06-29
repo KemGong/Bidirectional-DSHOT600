@@ -38,7 +38,7 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include "main.h"
 #include "gd32e230c_eval.h"
-//#include "cmsis_armclang.h"
+
 
 
 
@@ -52,13 +52,12 @@ OF SUCH DAMAGE.
 #define GPIOB_BOP_ADDR          (0x48000418)
 #define GPIOC_BOP_ADDR          (0x48000818)
 
-uint16_t buffer[140] = {0};//32
+uint16_t dshoot_dma_buffer[140];//32
+uint32_t send_buffer_dshoot[54];
 
-#define HIGHT_VALUE  0x01U<<(4+16),0x01U<<(4+16),0x01U<<(4)
+/*#define HIGHT_VALUE  0x01U<<(4+16),0x01U<<(4+16),0x01U<<(4)
 #define LOW_VALUE    0x01U<<(4+16),0x01U<<(4),0x01U<<(4)
 #define PULL_HIGH    0x01U<<(4),0x01U<<(4),0x01U<<(4)
-
-uint8_t dma_status = 0;
 
 uint32_t send_buffer[54] = {0};
 uint32_t send_buffer_speed[54] = {PULL_HIGH,LOW_VALUE,LOW_VALUE,LOW_VALUE,HIGHT_VALUE,HIGHT_VALUE,//3+3*16+3
@@ -67,10 +66,8 @@ uint32_t send_buffer_speed[54] = {PULL_HIGH,LOW_VALUE,LOW_VALUE,LOW_VALUE,HIGHT_
 
 uint32_t send_buffer_0[54] = {PULL_HIGH,LOW_VALUE,LOW_VALUE,LOW_VALUE,LOW_VALUE,LOW_VALUE,//3+3*16+3
                             LOW_VALUE,LOW_VALUE,LOW_VALUE,LOW_VALUE,LOW_VALUE,LOW_VALUE,LOW_VALUE,HIGHT_VALUE,
-                            HIGHT_VALUE,HIGHT_VALUE,HIGHT_VALUE,PULL_HIGH};
+                            HIGHT_VALUE,HIGHT_VALUE,HIGHT_VALUE,PULL_HIGH};*/
 
-extern uint16_t data_handle[140];
-extern uint8_t receive_dshoot_data_flag;
 
 /* configure the GPIO ports */
 void gpio_config(void);
@@ -97,35 +94,19 @@ int fputc(int ch, FILE *f)
   */
 void gpio_configuration_output(void)
 {
-#if 0
-    rcu_periph_clock_enable(RCU_GPIOA);
-
-    /*configure PA6(TIMER2 CH0) as alternate function*/
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_6);
-		//gpio_mode_set(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_6);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_6);
-    gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_6);
-#endif
-    
     rcu_periph_clock_enable(RCU_GPIOB);
     //PB4
-    gpio_mode_set(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_4);
-    gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_4);
+    gpio_mode_set(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
+    gpio_output_options_set(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
+    gpio_bit_set(GPIOB, GPIO_PIN_0);
+    gpio_bit_set(GPIOB, GPIO_PIN_1);
     gpio_bit_set(GPIOB, GPIO_PIN_4);
+    gpio_bit_set(GPIOB, GPIO_PIN_5);
 }
 
 void gpio_configuration_input(void)
 {
-#if 0
-    rcu_periph_clock_enable(RCU_GPIOA);
-
-    /*configure PA6(TIMER2 CH0) as alternate function*/
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_PIN_6);
-		//gpio_mode_set(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_6);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_6);
-    gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_6);
-#endif
-    gpio_mode_set(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_4);
+    gpio_mode_set(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
 }
 
 
@@ -221,7 +202,7 @@ void dma_configuration_receive_dshoot(void)
     /* DMA channel4 initialize */
     dma_init_struct.periph_addr  = (uint32_t)GPIOB_ISTAT_ADDR;
     dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;
-    dma_init_struct.memory_addr  = (uint32_t)buffer;
+    dma_init_struct.memory_addr  = (uint32_t)dshoot_dma_buffer;
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_16BIT;
     dma_init_struct.memory_width = DMA_MEMORY_WIDTH_16BIT;
@@ -265,7 +246,7 @@ void timer_configuration_send_dshoot(void)
     timer_initpara.prescaler         = 0;//35 72
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = (37);//一个中断的时间为528ns  38-1   new// 40-1   557
+    timer_initpara.period            = (37);//一锟斤拷锟叫断碉拷时锟斤拷为528ns  38-1   new// 40-1   557
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_init(TIMER2, &timer_initpara);
 
@@ -322,7 +303,7 @@ void dma_configuration_send_shoot(void)
     /* DMA channel4 initialize */
     dma_init_struct.periph_addr  = (uint32_t)GPIOB_BOP_ADDR;
     dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;
-    dma_init_struct.memory_addr  = (uint32_t)send_buffer;
+    dma_init_struct.memory_addr  = (uint32_t)send_buffer_dshoot;
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_32BIT;
     dma_init_struct.memory_width = DMA_MEMORY_WIDTH_32BIT;
@@ -348,10 +329,6 @@ extern uint32_t ic1value, ic2value;
     \param[out] none
     \retval     none
 */
-uint32_t cnt = 0;
-uint8_t start_flag = 0;
-uint32_t start_cnt = 0;
-extern uint32_t run_cnt;
 int main(void)
 {
     /* configure systick */
@@ -372,29 +349,8 @@ int main(void)
     /*timer_configuration_send_dshoot();
     dma_configuration_send_shoot();*/
 
-
-
-    while (1){
-        delay_1ms(1);
-        cnt++;
-        if (cnt<3000) {
-            start_flag = 0;
-            memcpy(send_buffer, send_buffer_0, sizeof(send_buffer));
-            start_cnt = run_cnt;
-        } else {
-            start_flag = 1;
-            memcpy(send_buffer, send_buffer_speed, sizeof(send_buffer));
-        }
-        dma_status = 0;
-        gpio_configuration_output();
-        __set_PRIMASK(1);//关总中断
-        dma_configuration_send_shoot();
-        timer_configuration_send_dshoot();
-        __set_PRIMASK(0);//开总中断
-        
-        //printf("\r /**** TIMER2 PWM Input Capture Demo ****/\r\n");
-        // printf(" the dutycycle is %d ", dutycycle);
-        // printf(" the frequence is %d \r\n", frequency);
-        //printf(" icvala %d, icvalb %d \r\n", ic1value, ic2value);
+    while (1)
+    {
+        test_dshot600_1ms();
     }
 }
